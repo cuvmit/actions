@@ -121,12 +121,12 @@ jobs:
           # Create the K8s deployment, service and ingress if it doesn't exist.  Initially this will point to
           # the repo's :sb or :prod tag, which was created in the publish step.  Then we'll point it to the
           # exact version tag.
-          kubectl describe deployment/${{ env.K8S_NAME }}-${{ env.WEBTIER }}-deployment > /dev/null 2> /dev/null
+          kubectl describe deployment/${{ env.K8S_NAME }}-${{ inputs.webtier }}-deployment > /dev/null 2> /dev/null
           if [ $? -ne 0 ]
           then
-            kubectl create --save-config -f config/k8s/${{ env.K8S_NAME }}-${{ env.WEBTIER }}.yaml
+            kubectl create --save-config -f config/k8s/${{ env.K8S_NAME }}-${{ inputs.webtier }}.yaml
           else
-            kubectl apply -f config/k8s/${{ env.K8S_NAME }}-${{ env.WEBTIER }}.yaml
+            kubectl apply -f config/k8s/${{ env.K8S_NAME }}-${{ inputs.webtier }}.yaml
           fi
 
-          kubectl set image deployment/${{ env.K8S_NAME }}-${{ env.WEBTIER }}-deployment ${{ env.K8S_NAME }}-${{ env.WEBTIER }}=${{ env.IMAGE_TAG }}
+          kubectl set image deployment/${{ env.K8S_NAME }}-${{ inputs.webtier }}-deployment ${{ env.K8S_NAME }}-${{ inputs.webtier }}=${{ env.IMAGE_TAG }}
