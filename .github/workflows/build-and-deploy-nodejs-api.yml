@@ -35,6 +35,9 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: 'us-east-1'
 
+      - name: Print versions
+        run: echo Package Version is ${{ env.PACKAGE_VERSION }} and production Version is ${{ env.PROD_VERSION }}
+
       - name: Exit if not equal
         if: ${{ env.PACKAGE_VERSION != env.PROD_VERSION }}
         run: |
