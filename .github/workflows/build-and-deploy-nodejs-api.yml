@@ -24,6 +24,23 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      # These environment vars are specific to sb
+      - name: set package version
+        run: echo PACKAGE_VERSION=$(jq --raw-output ".version" package.json) >> $GITHUB_ENV
+
+      - name: Get Prod Version
+        run: echo PROD_VERSION=$(aws ecr describe-images --repository-name ${{ github.event.repository.name }} | jq --raw-output '.imageDetails[] | .imageTags | select(.[1]) | select(.[0] == "prod" or .[1] == "prod") | if .[1] == "prod" then .[0] else .[1] end') >> $GITHUB_ENV
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: 'us-east-1'
+
+      - name: Exit if not equal
+        if: ${{ env.PACKAGE_VERSION != env.PROD_VERSION }}
+        run: |
+          echo 'CTRL-Z!  You forgot to bump your version number, comrade!  Edit the version number in package.json and commit to re-run.'
+          this_command_doesnt_exist_so_exit
+
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ inputs.node_version }}
@@ -38,10 +55,6 @@ jobs:
 
       - name: build
         run: yarn build:${{ inputs.webtier }}
-
-      # These environment vars are specific to sb
-      - name: set package version
-        run: echo PACKAGE_VERSION=$(jq --raw-output ".version" package.json) >> $GITHUB_ENV
 
       - name: set main version
         run: echo VERSION=${{ env.PACKAGE_VERSION }}-beta.${{ github.run_number }} >> $GITHUB_ENV
