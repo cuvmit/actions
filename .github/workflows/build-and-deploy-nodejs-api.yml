@@ -39,7 +39,7 @@ jobs:
         run: echo Package Version is ${{ env.PACKAGE_VERSION }} and production Version is ${{ env.PROD_VERSION }}
 
       - name: Exit if not equal
-        if: ${{ env.PACKAGE_VERSION != env.PROD_VERSION }}
+        if: ${{ env.PACKAGE_VERSION == env.PROD_VERSION }}
         run: |
           echo 'CTRL-Z!  You forgot to bump your version number, comrade!  Edit the version number in package.json and commit to re-run.'
           this_command_doesnt_exist_so_exit
