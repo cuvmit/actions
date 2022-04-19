@@ -12,6 +12,9 @@ on:
 jobs:
   build-and-deploy-nodejs-api:
     runs-on: ubuntu-latest
+    env:
+      AWS_REGISTRY_URL: 165158508528.dkr.ecr.us-east-1.amazonaws.com
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -36,7 +39,7 @@ jobs:
         run: echo PACKAGE_VERSION=$(jq --raw-output ".version" package.json) >> $GITHUB_ENV
 
       - name: set main version
-        run: echo VERSION=${{ env.PACKAGE_VERSION }}-beta.${{ github.run_attempt }} >> $GITHUB_ENV
+        run: echo VERSION=${{ env.PACKAGE_VERSION }}-beta.${{ github.run_number }} >> $GITHUB_ENV
 
       - name: set Docker image tag
         run: echo IMAGE_TAG=${{ env.AWS_REGISTRY_URL }}/${{ github.event.repository.name }}:${{ env.VERSION }} >> $GITHUB_ENV
