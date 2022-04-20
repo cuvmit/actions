@@ -51,19 +51,19 @@ jobs:
         run: |
           echo S3_BUCKET=app-sb.vet.cornell.edu >> $GITHUB_ENV
           echo S3_SYNC_HOST=app-sb.vet.cornell.edu >> $GITHUB_ENV
-        if: ${{ inputs.webtier == 'sb' && inputs.webserver == 'app' }}
+        if: ${{ inputs.webtier == 'sb' && inputs.web_server == 'app' }}
 
       - name: set S3 target for app
         run: |
           echo S3_BUCKET=app.vet.cornell.edu >> $GITHUB_ENV
           echo S3_SYNC_HOST=app.vet.cornell.edu >> $GITHUB_ENV
-        if: ${{ inputs.webtier == 'sb' && inputs.webserver == 'app' }}
+        if: ${{ inputs.webtier == 'sb' && inputs.web_server == 'app' }}
 
       - name: set S3 target for vetapp-sb or vetapp
         run: |
           echo S3_BUCKET=vetapp-${{ inputs.webtier }}.vmit.cucloud.net >> $GITHUB_ENV
           echo S3_SYNC_HOST=vetapp-{{ inputs.webtier }}-lb.vmit.cucloud.net >> $GITHUB_ENV
-        if: ${{ inputs.webserver == 'vetapp' }}
+        if: ${{ inputs.web_server == 'vetapp' }}
 
       - name: Determine root of compiled code - Angular Apps
         run: echo COMPILED_ROOT=dist/${{ github.event.repository.name }} >> $GITHUB_ENV
@@ -80,5 +80,5 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: 'us-east-1'
 
-      - name: Trigger sync from S3 to webserver
+      - name: Trigger sync from S3 to web_server
         run: curl -k https://${{ env.S3_SYNC_HOST }}/cgi-bin/s3sync
