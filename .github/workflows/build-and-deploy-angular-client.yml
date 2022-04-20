@@ -62,7 +62,7 @@ jobs:
       - name: set S3 target for vetapp-sb or vetapp
         run: |
           echo S3_BUCKET=vetapp-${{ inputs.webtier }}.vmit.cucloud.net >> $GITHUB_ENV
-          echo S3_SYNC_HOST=vetapp-{{ inputs.webtier }}-lb.vmit.cucloud.net >> $GITHUB_ENV
+          echo S3_SYNC_HOST=vetapp-${{ inputs.webtier }}-lb.vmit.cucloud.net >> $GITHUB_ENV
         if: ${{ inputs.web_server == 'vetapp' }}
 
       - name: Determine root of compiled code - Angular Apps
