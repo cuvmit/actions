@@ -1,0 +1,84 @@
+name: build-and-deploy-nodejs-api
+on:
+  workflow_call:
+    inputs:
+      webtier:
+        required: true
+        type: string
+      node_version:
+        required: true
+        type: string
+      web_server:
+        required: true
+        type: string
+      legacy:
+        default: false
+        required: false
+        type: boolean
+    secrets:
+      aws_access_key_id:
+        required: true
+      aws_secret_access_key:
+        required: true
+
+jobs:
+  build-and-deploy-nodejs-api:
+    runs-on: ubuntu-latest
+    env:
+      AWS_REGISTRY_URL: 165158508528.dkr.ecr.us-east-1.amazonaws.com
+      K8S_CLUSTER: k8s.vmit.cucloud.net
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ inputs.node_version }}
+
+      - name: Cache node modules
+        uses: actions/cache@v3
+        env:
+          cache-name: cache-node-modules
+        with:
+          path: ./node_modules
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+
+      - name: build
+        run: yarn build:${{ inputs.webtier }}
+
+      - name: set S3 target for app-sb
+        run: |
+          echo S3_BUCKET=app-sb.vet.cornell.edu >> $GITHUB_ENV
+          echo S3_SYNC_HOST=app-sb.vet.cornell.edu >> $GITHUB_ENV
+        if: ${{ inputs.webtier == 'sb' && inputs.webserver == 'app' }}
+
+      - name: set S3 target for app
+        run: |
+          echo S3_BUCKET=app.vet.cornell.edu >> $GITHUB_ENV
+          echo S3_SYNC_HOST=app.vet.cornell.edu >> $GITHUB_ENV
+        if: ${{ inputs.webtier == 'sb' && inputs.webserver == 'app' }}
+
+      - name: set S3 target for vetapp-sb or vetapp
+        run: |
+          echo S3_BUCKET=vetapp-${{ inputs.webtier }}.vmit.cucloud.net >> $GITHUB_ENV
+          echo S3_SYNC_HOST=vetapp-{{ inputs.webtier }}-lb.vmit.cucloud.net >> $GITHUB_ENV
+        if: ${{ inputs.webserver == 'vetapp' }}
+
+      - name: Determine root of compiled code - Angular Apps
+        run: echo COMPILED_ROOT=dist/${{ github.event.repository.name }} >> $GITHUB_ENV
+        if: ${{ ! inputs.legacy }}
+
+      - name: Determine root of compiled code - Legacy AngularJS Apps
+        run: echo COMPILED_ROOT=dist >> $GITHUB_ENV
+        if: ${{ inputs.legacy }}
+
+      - name: Synchronize compiled code to S3 - Angular apps
+        run: aws s3 sync --delete ${{ env.COMPLIED_ROOT }} s3://${{ env.S3_BUCKET }}/${{ github.event.repository.name }}
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: 'us-east-1'
+
+      - name: Trigger sync from S3 to webserver
+        run: curl -k https://${{ env.S3_SYNC_HOST }}/cgi-bin/s3sync
