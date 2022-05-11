@@ -90,7 +90,7 @@ jobs:
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: ${{ env.AWS_DEFAULT_REGION }}
+          AWS_DEFAULT_REGION: 'us-east-1'
         if: ${{ inputs.web_server == 'vetapp' }}
 
       - name: Trigger sync from S3 to web_server
@@ -102,5 +102,5 @@ jobs:
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: ${{ env.AWS_DEFAULT_REGION }}
+          AWS_DEFAULT_REGION: 'us-east-1'
         if: ${{ inputs.web_server == 'vetapp' }}
