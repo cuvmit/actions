@@ -51,6 +51,21 @@ resource "aws_iam_group_policy" "github-actions-policy" {
         "Effect" : "Allow",
         "Action" : "ec2:DescribeSecurityGroups",
         "Resource" : "*"
+      },
+      {
+        "Sid" : "ECRActions",
+        "Effect" : "Allow",
+        "Action" : [
+          "ecr:GetAuthorizationToken",
+          "ecr:GetDownloadUrlForLayer",
+          "ecr:BatchGetImage",
+          "ecr:BatchCheckLayerAvailability",
+          "ecr:PutImage",
+          "ecr:InitiateLayerUpload",
+          "ecr:UploadLayerPart",
+          "ecr:CompleteLayerUpload"
+        ],
+        "Resource" : "*"
       }
     ]
   })
