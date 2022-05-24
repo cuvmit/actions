@@ -1,11 +1,8 @@
-name: build-and-deploy-nodejs-batch
+name: build-and-deploy-general-api
 on:
   workflow_call:
     inputs:
       webtier:
-        required: true
-        type: string
-      node_version:
         required: true
         type: string
     secrets:
@@ -13,9 +10,13 @@ on:
         required: true
       aws_secret_access_key:
         required: true
+      k8s_token:
+        required: true
+      k8s_ca:
+        required: true
 
 jobs:
-  build-and-deploy-nodejs-batch:
+  build-and-deploy-general-api:
     runs-on: ubuntu-latest
     env:
       AWS_REGISTRY_URL: 165158508528.dkr.ecr.us-east-1.amazonaws.com
@@ -44,21 +45,6 @@ jobs:
         run: |
           echo 'CTRL-Z!  You forgot to bump your version number, comrade!  Edit the version number in package.json and commit to re-run.'
           this_command_doesnt_exist_so_exit
-
-      - uses: actions/setup-node@v3
-        with:
-          node-version: ${{ inputs.node_version }}
-
-      - name: Cache node modules
-        uses: actions/cache@v3
-        env:
-          cache-name: cache-node-modules
-        with:
-          path: ./node_modules
-          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
-
-      - name: build
-        run: yarn build:${{ inputs.webtier }}
 
       - name: set main version for sb
         run: echo VERSION=${{ env.PACKAGE_VERSION }}-beta.${{ github.run_number }} >> $GITHUB_ENV
@@ -100,3 +86,29 @@ jobs:
           tags: |
             ${{ env.IMAGE_TAG }}
             ${{ env.TIER_POINTER_TAG }}
+
+      - uses: azure/setup-kubectl@v2.0
+        with:
+          version: 'v1.21.2'
+
+      - name: Deploy to Kubernetes
+        run: |
+          echo ${{ secrets.k8s_token }} | base64 -d > ./k8s_token
+          echo ${{ secrets.k8s_ca }} | base64 -d > ./k8s_ca
+          kubectl config set-cluster ${{ env.K8S_CLUSTER }} --server=https://api.${{ env.K8S_CLUSTER }} --certificate-authority=./k8s_ca
+          kubectl config set-credentials bitbucket-pipelines --token="$(cat ./k8s_token)"
+          kubectl config set-context deployer --cluster=${{ env.K8S_CLUSTER }} --user=bitbucket-pipelines
+          kubectl config use-context deployer
+
+          # Create the K8s deployment, service and ingress if it doesn't exist.  Initially this will point to
+          # the repo's :sb or :prod tag, which was created in the publish step.  Then we'll point it to the
+          # exact version tag.
+          kubectl describe deployment/${{ env.K8S_NAME }}-${{ inputs.webtier }}-deployment > /dev/null 2> /dev/null
+          if [ $? -ne 0 ]
+          then
+            kubectl create --save-config -f config/k8s/${{ env.K8S_NAME }}-${{ inputs.webtier }}.yaml
+          else
+            kubectl apply -f config/k8s/${{ env.K8S_NAME }}-${{ inputs.webtier }}.yaml
+          fi
+
+          kubectl set image deployment/${{ env.K8S_NAME }}-${{ inputs.webtier }}-deployment ${{ env.K8S_NAME }}-${{ inputs.webtier }}=${{ env.IMAGE_TAG }}
