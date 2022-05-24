@@ -2,6 +2,9 @@ name: build-and-deploy-nodejs-batch
 on:
   workflow_call:
     inputs:
+      webtier:
+        required: true
+        type: string
       node_version:
         required: true
         type: string
