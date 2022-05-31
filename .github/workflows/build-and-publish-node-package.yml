@@ -8,6 +8,9 @@ on:
       node_version:
         required: true
         type: string
+    secrets:
+      verdaccio_token:
+        required: true
 
 jobs:
   build-and-publish-node-package:
@@ -48,3 +51,5 @@ jobs:
 
       - name: Publish Package to Verdaccio
         run: yarn publish --no-git-tag-version --new-version ${{ env.VERSION }}
+        env:
+          VERDACCIO_TOKEN: ${{ secrets.VERDACCIO_TOKEN }}
