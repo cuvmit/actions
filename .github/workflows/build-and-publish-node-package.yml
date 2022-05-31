@@ -47,4 +47,4 @@ jobs:
         run: mv .npmrc_config .npmrc
 
       - name: Publish Package to Verdaccio
-        run: yarn publish --no-git-tag-version --new-version ${{ VERSION }}
+        run: yarn publish --no-git-tag-version --new-version ${{ env.VERSION }}
