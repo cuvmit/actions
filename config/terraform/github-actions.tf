@@ -67,6 +67,19 @@ resource "aws_iam_group_policy" "github-actions-policy" {
           "ecr:DescribeImages"
         ],
         "Resource" : "*"
+      },
+      {
+        "Sid" : "ReadOracleClient",
+        "Effect" : "Allow",
+        "Action" : [
+          "s3:GetObject",
+          "s3:GetObjectVersion",
+          "s3:ListBucket"
+        ],
+        "Resource" : [
+          "arn:aws:s3:::vmit-public/*",
+          "arn:aws:s3:::vmit-public"
+        ]
       }
     ]
   })
