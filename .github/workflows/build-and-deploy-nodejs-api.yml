@@ -98,7 +98,10 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v2
         with:
-          build-args: webtier=${{ inputs.webtier }} aws_access_key_id=${{ secrets.aws_access_key_id }} aws_secret_access_key=${{ secrets.aws_secret_access_key }}
+          build-args: |
+            webtier=${{ inputs.webtier }}
+            aws_access_key_id=${{ secrets.aws_access_key_id }}
+            aws_secret_access_key=${{ secrets.aws_secret_access_key }}
           context: .
           push: true
           tags: |
