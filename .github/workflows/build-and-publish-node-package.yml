@@ -1,0 +1,50 @@
+name: build-and-publish-node-package
+on:
+  workflow_call:
+    inputs:
+      webtier:
+        required: true
+        type: string
+      node_version:
+        required: true
+        type: string
+
+jobs:
+  build-and-publish-node-package:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ inputs.node_version }}
+
+      - name: Cache node modules
+        uses: actions/cache@v3
+        env:
+          cache-name: cache-node-modules
+        with:
+          path: ./node_modules
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+
+      - name: build
+        run: yarn build:${{ inputs.webtier }}
+
+      - name: set package version
+        run: echo PACKAGE_VERSION=$(jq --raw-output ".version" package.json) >> $GITHUB_ENV
+
+      - name: set main version for sb
+        run: echo VERSION=${{ env.PACKAGE_VERSION }}-beta.${{ github.run_number }} >> $GITHUB_ENV
+        if: ${{ inputs.webtier == 'sb'}}
+
+      - name: set main version for prod
+        run: echo VERSION=${{ env.PACKAGE_VERSION }} >> $GITHUB_ENV
+        if: ${{ inputs.webtier == 'prod'}}
+
+      - name: Copy over NPM config
+        run: mv .npmrc_config .npmrc
+
+      - name: Publish Package to Verdaccio
+        run: yarn publish --no-git-tag-version --new-version ${{ VERSION }}
