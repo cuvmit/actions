@@ -117,7 +117,7 @@ jobs:
         run: |
           echo ${{ secrets.k8s_token }} | base64 -d > ./k8s_token
           echo ${{ secrets.k8s_ca }} | base64 -d > ./k8s_ca
-          kubectl config set-cluster arn:aws:eks:us-east-1:165158508528:cluster/eks-${{ inputs.webtier }} --server=https://${{ env.K8S_API_HOST }} --certificate-authority=./k8s_ca
+          kubectl config set-cluster arn:aws:eks:us-east-1:165158508528:cluster/eks-${{ inputs.webtier }} --server=https://${{ secrets.k8s_api_host }} --certificate-authority=./k8s_ca
           kubectl config set-credentials github-actions --token="$(cat ./k8s_token)"
           kubectl config set-context deployer --cluster=arn:aws:eks:us-east-1:165158508528:cluster/eks-${{ inputs.webtier }} --user=github-actions
           kubectl config use-context deployer
