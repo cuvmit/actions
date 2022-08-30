@@ -13,9 +13,11 @@ on:
         required: true
       aws_secret_access_key:
         required: true
-      k8s_token:
+      k8s_token_sb:
         required: true
-      k8s_ca:
+      k8s_ca_sb:
+        required: true
+      k8s_api_host_sb:
         required: true
 
 jobs:
@@ -23,7 +25,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       AWS_REGISTRY_URL: 165158508528.dkr.ecr.us-east-1.amazonaws.com
-      K8S_CLUSTER: k8s.vmit.cucloud.net
 
     steps:
       - name: Checkout code
@@ -112,13 +113,19 @@ jobs:
         with:
           version: 'v1.21.2'
 
+      - name: set K8s Cluster Parameters for SB
+        if: ${{ inputs.webtier == 'sb' }}
+        run: |
+          echo K8S_CLUSTER=arn:aws:eks:us-east-1:165158508528:cluster/eks-sb >> $GITHUB_ENV
+          echo K8S_API_HOST=${{ secrets.k8s_api_host_sb }} >> $GITHUB_ENV
+          echo ${{ secrets.k8s_token_sb }} | base64 -d > ./k8s_token
+          echo ${{ secrets.k8s_ca_sb }} | base64 -d > ./k8s_ca
+
       - name: Deploy to Kubernetes
         run: |
-          echo ${{ secrets.k8s_token }} | base64 -d > ./k8s_token
-          echo ${{ secrets.k8s_ca }} | base64 -d > ./k8s_ca
-          kubectl config set-cluster ${{ env.K8S_CLUSTER }} --server=https://api.${{ env.K8S_CLUSTER }} --certificate-authority=./k8s_ca
-          kubectl config set-credentials bitbucket-pipelines --token="$(cat ./k8s_token)"
-          kubectl config set-context deployer --cluster=${{ env.K8S_CLUSTER }} --user=bitbucket-pipelines
+          kubectl config set-cluster ${{ env.K8S_CLUSTER }} --server=https://${{ env.K8S_API_HOST }} --certificate-authority=./k8s_ca
+          kubectl config set-credentials github-actions --token="$(cat ./k8s_token)"
+          kubectl config set-context deployer --cluster=${{ env.K8S_CLUSTER }} --user=github-actions
           kubectl config use-context deployer
 
           # Create the K8s deployment, service and ingress if it doesn't exist.  Initially this will point to
