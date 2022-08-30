@@ -13,11 +13,11 @@ on:
         required: true
       aws_secret_access_key:
         required: true
-      k8s_token_sb:
+      k8s_token:
         required: true
-      k8s_ca_sb:
+      k8s_ca:
         required: true
-      k8s_api_host_sb:
+      k8s_api_host:
         required: true
 
 jobs:
@@ -113,16 +113,11 @@ jobs:
         with:
           version: 'v1.21.2'
 
-      - name: set K8s Cluster Parameters for SB
-        if: ${{ inputs.webtier == 'sb' }}
-        run: |
-          echo K8S_CLUSTER=arn:aws:eks:us-east-1:165158508528:cluster/eks-sb >> $GITHUB_ENV
-          echo K8S_API_HOST=${{ secrets.k8s_api_host_sb }} >> $GITHUB_ENV
-          echo ${{ secrets.k8s_token_sb }} | base64 -d > ./k8s_token
-          echo ${{ secrets.k8s_ca_sb }} | base64 -d > ./k8s_ca
-
       - name: Deploy to Kubernetes
         run: |
+          echo K8S_CLUSTER=arn:aws:eks:us-east-1:165158508528:cluster/eks-${{ inputs.webtier }} >> $GITHUB_ENV
+          echo ${{ secrets.k8s_token }} | base64 -d > ./k8s_token
+          echo ${{ secrets.k8s_ca }} | base64 -d > ./k8s_ca
           kubectl config set-cluster ${{ env.K8S_CLUSTER }} --server=https://${{ env.K8S_API_HOST }} --certificate-authority=./k8s_ca
           kubectl config set-credentials github-actions --token="$(cat ./k8s_token)"
           kubectl config set-context deployer --cluster=${{ env.K8S_CLUSTER }} --user=github-actions
