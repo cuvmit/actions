@@ -125,7 +125,7 @@ jobs:
           # Create the K8s deployment, service and ingress if it doesn't exist.  Initially this will point to
           # the repo's :sb or :prod tag, which was created in the publish step.  Then we'll point it to the
           # exact version tag.
-          RESPONSE=$(kc get deployment/${{ env.K8S_NAME }}-${{ inputs.webtier }}-deployment --ignore-not-found)
+          RESPONSE=$(kubectl get deployment/${{ env.K8S_NAME }}-${{ inputs.webtier }}-deployment --ignore-not-found)
           if [ -z $RESPONSE ]
           then
             kubectl create --save-config -f config/k8s/${{ env.K8S_NAME }}-${{ inputs.webtier }}.yaml
