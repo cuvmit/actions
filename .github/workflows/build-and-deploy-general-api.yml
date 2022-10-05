@@ -95,26 +95,20 @@ jobs:
         with:
           version: 'v1.21.2'
 
-      - name: set K8s Cluster Parameters for SB
-        if: ${{ inputs.webtier == 'sb' }}
-        run: |
-          echo K8S_CLUSTER=arn:aws:eks:us-east-1:165158508528:cluster/eks-sb >> $GITHUB_ENV
-          echo K8S_API_HOST=${{ secrets.k8s_api_host }} >> $GITHUB_ENV
-          echo ${{ secrets.k8s_token }} | base64 -d > ./k8s_token
-          echo ${{ secrets.k8s_ca }} | base64 -d > ./k8s_ca
-
       - name: Deploy to Kubernetes
         run: |
-          kubectl config set-cluster ${{ env.K8S_CLUSTER }} --server=https://${{ env.K8S_API_HOST }} --certificate-authority=./k8s_ca
+          echo ${{ secrets.k8s_token }} | base64 -d > ./k8s_token
+          echo ${{ secrets.k8s_ca }} | base64 -d > ./k8s_ca
+          kubectl config set-cluster arn:aws:eks:us-east-1:165158508528:cluster/eks-${{ inputs.webtier }} --server=https://${{ secrets.k8s_api_host }} --certificate-authority=./k8s_ca
           kubectl config set-credentials github-actions --token="$(cat ./k8s_token)"
-          kubectl config set-context deployer --cluster=${{ env.K8S_CLUSTER }} --user=github-actions
+          kubectl config set-context deployer --cluster=arn:aws:eks:us-east-1:165158508528:cluster/eks-${{ inputs.webtier }} --user=github-actions
           kubectl config use-context deployer
 
           # Create the K8s deployment, service and ingress if it doesn't exist.  Initially this will point to
           # the repo's :sb or :prod tag, which was created in the publish step.  Then we'll point it to the
           # exact version tag.
-          kubectl describe deployment/${{ env.K8S_NAME }}-${{ inputs.webtier }}-deployment > /dev/null 2> /dev/null
-          if [ $? -ne 0 ]
+          RESPONSE=$(kubectl get deployment/${{ env.K8S_NAME }}-${{ inputs.webtier }}-deployment --ignore-not-found)
+          if [ -z $RESPONSE ]
           then
             kubectl create --save-config -f config/k8s/${{ env.K8S_NAME }}-${{ inputs.webtier }}.yaml
           else
