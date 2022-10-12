@@ -103,7 +103,8 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
-      - uses: int128/create-ecr-repository-action@v1
+      - name: Create repo if doesn't exist (ECR)
+        uses: int128/create-ecr-repository-action@v1
         with:
           repository: ${{ github.event.repository.name }}
 

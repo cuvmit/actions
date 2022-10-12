@@ -34,7 +34,7 @@ jobs:
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: 'us-east-1'
+          AWS_DEFAULT_REGION: "us-east-1"
 
       - name: Print versions
         run: echo Package Version is ${{ env.PACKAGE_VERSION }} and production Version is ${{ env.PROD_VERSION }}
@@ -90,6 +90,11 @@ jobs:
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Create repo if doesn't exist (ECR)
+        uses: int128/create-ecr-repository-action@v1
+        with:
+          repository: ${{ github.event.repository.name }}
 
       - name: Build and push
         uses: docker/build-push-action@v2
