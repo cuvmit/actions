@@ -75,7 +75,7 @@ jobs:
 
       - name: Run tests with postgres
         if: ${{ inputs.run_tests_with_postgres }}
-        uses: ./.github/workflows/postgres-test-pipeline.yml
+        uses: cuvmit/actions/.github/workflows/postgres-test-pipeline.yml@postgres-test-pipeline
 
       - name: build
         run: yarn build:${{ inputs.webtier }}
