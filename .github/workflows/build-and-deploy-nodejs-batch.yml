@@ -8,6 +8,10 @@ on:
       node_version:
         required: true
         type: string
+      run_tests_with_postgres:
+        required: false
+        type: boolean
+        default: false
     secrets:
       aws_access_key_id:
         required: true
