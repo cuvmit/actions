@@ -120,8 +120,8 @@ jobs:
           else
             DEPLOYMENTS=(${{ env.K8S_NAME }})
           fi
-          echo $DEPLOYMENTS
+          echo $DEPLOYMENTS[0]
 
-          for DEPLOYMENT in DEPLOYMENTS; do
+          for DEPLOYMENT in $DEPLOYMENTS; do
             echo $DEPLOYMENT
           done
