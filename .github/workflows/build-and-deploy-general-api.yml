@@ -121,4 +121,16 @@ jobs:
 
           for DEPLOYMENT in "${DEPLOYMENTS[@]}"; do
             echo "$DEPLOYMENT"
+            # Create the K8s deployment, service and ingress if it doesn't exist.  Initially this will point to
+            # the repo's :sb or :prod tag, which was created in the publish step.  Then we'll point it to the
+            # exact version tag.
+            RESPONSE=$(kubectl get deployment/${DEPLOYMENT}-${{ inputs.webtier }}-deployment --ignore-not-found)
+            if [ -z $RESPONSE ]
+            then
+              kubectl create --save-config -f config/k8s/${DEPLOYMENT}-${{ inputs.webtier }}.yaml
+            else
+              kubectl apply -f config/k8s/${DEPLOYMENT}-${{ inputs.webtier }}.yaml
+            fi
+
+            kubectl set image deployment/${DEPLOYMENT}-${{ inputs.webtier }}-deployment ${DEPLOYMENT}-${{ inputs.webtier }}=${{ env.IMAGE_TAG }}
           done
