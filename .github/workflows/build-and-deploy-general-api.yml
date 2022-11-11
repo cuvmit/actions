@@ -114,7 +114,7 @@ jobs:
           kubectl config use-context deployer
 
           INPUTS_DEPLOYMENTS="${{ inputs.deployments }}"
-          if [ -n $INPUTS_DEPLOYMENTS ]
+          if [ -n "$INPUTS_DEPLOYMENTS" ]
           then
             DEPLOYMENTS=(${{ fromJson(inputs.deployments) }})
           else
