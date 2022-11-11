@@ -113,15 +113,12 @@ jobs:
           kubectl config set-context deployer --cluster=arn:aws:eks:us-east-1:165158508528:cluster/eks-${{ inputs.webtier }} --user=github-actions
           kubectl config use-context deployer
 
-          INPUTS_DEPLOYMENTS="${{ inputs.deployments }}"
-          if [ -n "$INPUTS_DEPLOYMENTS" ]
-          then
-            DEPLOYMENTS=(${{ fromJson(inputs.deployments) }})
-          else
-            DEPLOYMENTS=(${{ env.K8S_NAME }})
+          DEPLOYMENTS=( ${{ inputs.deployments }} )
+          if (( ${#DEPLOYMENTS[@]} == 0 )); then
+            DEPLOYMENTS=( ${{ env.K8S_NAME }} )
           fi
           echo "${DEPLOYMENTS[*]}"
 
           for DEPLOYMENT in "${DEPLOYMENTS[@]}"; do
-            echo $DEPLOYMENT
+            echo "$DEPLOYMENT"
           done
