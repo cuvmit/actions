@@ -8,7 +8,7 @@ on:
       deployments:
         required: false
         type: string
-        description: "json string array of deployments to create"
+        description: "space-separated list of deployments to create"
     secrets:
       aws_access_key_id:
         required: true
