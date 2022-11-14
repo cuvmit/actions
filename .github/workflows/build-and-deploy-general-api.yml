@@ -5,6 +5,10 @@ on:
       webtier:
         required: true
         type: string
+      deployments:
+        required: false
+        type: string
+        description: "space-separated list of deployments to create"
     secrets:
       aws_access_key_id:
         required: true
@@ -109,15 +113,22 @@ jobs:
           kubectl config set-context deployer --cluster=arn:aws:eks:us-east-1:165158508528:cluster/eks-${{ inputs.webtier }} --user=github-actions
           kubectl config use-context deployer
 
-          # Create the K8s deployment, service and ingress if it doesn't exist.  Initially this will point to
-          # the repo's :sb or :prod tag, which was created in the publish step.  Then we'll point it to the
-          # exact version tag.
-          RESPONSE=$(kubectl get deployment/${{ env.K8S_NAME }}-${{ inputs.webtier }}-deployment --ignore-not-found)
-          if [ -z $RESPONSE ]
-          then
-            kubectl create --save-config -f config/k8s/${{ env.K8S_NAME }}-${{ inputs.webtier }}.yaml
-          else
-            kubectl apply -f config/k8s/${{ env.K8S_NAME }}-${{ inputs.webtier }}.yaml
+          DEPLOYMENTS=( ${{ inputs.deployments }} )
+          if (( ${#DEPLOYMENTS[@]} == 0 )); then
+            DEPLOYMENTS=( ${{ env.K8S_NAME }} )
           fi
 
-          kubectl set image deployment/${{ env.K8S_NAME }}-${{ inputs.webtier }}-deployment ${{ env.K8S_NAME }}-${{ inputs.webtier }}=${{ env.IMAGE_TAG }}
+          for DEPLOYMENT in "${DEPLOYMENTS[@]}"; do
+            # Create the K8s deployment, service and ingress if it doesn't exist.  Initially this will point to
+            # the repo's :sb or :prod tag, which was created in the publish step.  Then we'll point it to the
+            # exact version tag.
+            RESPONSE=$(kubectl get deployment/${DEPLOYMENT}-${{ inputs.webtier }}-deployment --ignore-not-found)
+            if [ -z $RESPONSE ]
+            then
+              kubectl create --save-config -f config/k8s/${DEPLOYMENT}-${{ inputs.webtier }}.yaml
+            else
+              kubectl apply -f config/k8s/${DEPLOYMENT}-${{ inputs.webtier }}.yaml
+            fi
+
+            kubectl set image deployment/${DEPLOYMENT}-${{ inputs.webtier }}-deployment ${DEPLOYMENT}-${{ inputs.webtier }}=${{ env.IMAGE_TAG }}
+          done
