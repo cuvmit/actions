@@ -1,4 +1,4 @@
-name: build-and-deploy-nodejs-api
+name: build-and-deploy-angular-client
 on:
   workflow_call:
     inputs:

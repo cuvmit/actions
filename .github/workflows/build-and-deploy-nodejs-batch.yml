@@ -110,7 +110,7 @@ jobs:
             webtier=${{ inputs.webtier }}
             aws_access_key_id=${{ secrets.aws_access_key_id }}
             aws_secret_access_key=${{ secrets.aws_secret_access_key }}
-          context: .
+          context: ${{ inputs.working_directory }}
           push: true
           tags: |
             ${{ env.IMAGE_TAG }}
