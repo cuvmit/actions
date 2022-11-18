@@ -1,0 +1,118 @@
+# Note: this is a stop-gap measure.  It's almost identical to build-and-deploy-angular-client
+# except for the S3 copy step, which requires multiple directories.  A better way to do this would
+# be to read the project information and loop over it, but I don't have time to do that right now.
+
+name: build-and-deploy-angular-workspace
+on:
+  workflow_call:
+    inputs:
+      webtier:
+        required: true
+        type: string
+      node_version:
+        required: true
+        type: string
+      web_server:
+        required: true
+        type: string
+      project1:
+        required: true
+        type: string
+      project2:
+        required: true
+        type: string
+    secrets:
+      aws_access_key_id:
+        required: true
+      aws_secret_access_key:
+        required: true
+
+jobs:
+  build-and-deploy-nodejs-api:
+    runs-on: ubuntu-latest
+    env:
+      AWS_REGISTRY_URL: 165158508528.dkr.ecr.us-east-1.amazonaws.com
+      K8S_CLUSTER: k8s.vmit.cucloud.net
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ inputs.node_version }}
+
+      - name: Cache node modules
+        uses: actions/cache@v3
+        env:
+          cache-name: cache-node-modules
+        with:
+          path: ./node_modules
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+
+      - name: build
+        run: yarn build:${{ inputs.webtier }}
+
+      - name: set S3 target for app-sb
+        run: |
+          echo S3_BUCKET=app-sb.vet.cornell.edu >> $GITHUB_ENV
+          echo S3_SYNC_HOST=app-sb.vet.cornell.edu >> $GITHUB_ENV
+        if: ${{ inputs.webtier == 'sb' && inputs.web_server == 'app' }}
+
+      - name: set S3 target for app
+        run: |
+          echo S3_BUCKET=app.vet.cornell.edu >> $GITHUB_ENV
+          echo S3_SYNC_HOST=app.vet.cornell.edu >> $GITHUB_ENV
+        if: ${{ inputs.webtier == 'prod' && inputs.web_server == 'app' }}
+
+      - name: set S3 target for vetapp-sb or vetapp
+        run: |
+          echo S3_BUCKET=vetapp-${{ inputs.webtier }}.vmit.cucloud.net >> $GITHUB_ENV
+          echo S3_SYNC_HOST=vetapp-${{ inputs.webtier }}-lb.vmit.cucloud.net >> $GITHUB_ENV
+        if: ${{ inputs.web_server == 'vetapp' }}
+
+      # The next two steps should be a loop of some sort
+      - name: Determine root of compiled code - Angular Apps
+        run: echo COMPILED_ROOT=dist/${{ inputs.project1 }} >> $GITHUB_ENV
+
+      - name: Synchronize compiled code to S3 - Angular apps
+        run: aws s3 sync --delete ${{ env.COMPILED_ROOT }} s3://${{ env.S3_BUCKET }}/${{ inputs.project1 }}
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: 'us-east-1'
+
+      - name: Determine root of compiled code - Angular Apps
+        run: echo COMPILED_ROOT=dist/${{ inputs.project2 }} >> $GITHUB_ENV
+
+      - name: Synchronize compiled code to S3 - Angular apps
+        run: aws s3 sync --delete ${{ env.COMPILED_ROOT }} s3://${{ env.S3_BUCKET }}/${{ inputs.project2 }}
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: 'us-east-1'
+
+      - name: Get Github action IP
+        id: ip
+        uses: haythem/public-ip@v1.2
+
+      - name: Vetapp only - add Github Actions IP to Security group cloud-ci-tools
+        run: |
+          aws ec2 authorize-security-group-ingress --group-id sg-06a1c0133c41d79b9 --protocol tcp --port 443 --cidr ${{ steps.ip.outputs.ipv4 }}/32
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: 'us-east-1'
+        if: ${{ inputs.web_server == 'vetapp' }}
+
+      - name: Trigger sync from S3 to web_server
+        run: curl -k https://${{ env.S3_SYNC_HOST }}/cgi-bin/s3sync
+
+      - name: Vetapp only - remove Github Actions IP from Security group cloud-ci-tools
+        run: |
+          aws ec2 revoke-security-group-ingress --group-id sg-06a1c0133c41d79b9 --protocol tcp --port 443 --cidr ${{ steps.ip.outputs.ipv4 }}/32
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: 'us-east-1'
+        if: ${{ inputs.web_server == 'vetapp' }}
