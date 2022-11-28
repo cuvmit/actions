@@ -35,6 +35,8 @@ resource "aws_iam_group_policy" "github-actions-policy" {
           "arn:aws:s3:::app-sb.vet.cornell.edu/*",
           "arn:aws:s3:::app.vet.cornell.edu",
           "arn:aws:s3:::app.vet.cornell.edu/*",
+          "arn:aws:s3:::aws-glue-vet-scripts",
+          "arn:aws:s3:::aws-glue-vet-scripts/*",
         ]
       },
       {
