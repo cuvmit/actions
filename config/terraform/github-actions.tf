@@ -40,6 +40,15 @@ resource "aws_iam_group_policy" "github-actions-policy" {
         ]
       },
       {
+        "Effect": "Allow",
+        "Action": [
+          "elasticfilesystem:*"
+        ],
+        "Resource": [
+          "*"
+        ]
+      },
+      {
         "Sid" : "UpdateIngress",
         "Effect" : "Allow",
         "Action" : [
