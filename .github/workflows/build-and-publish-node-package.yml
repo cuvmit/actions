@@ -23,6 +23,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ inputs.node_version }}
+          registry-url: 'https://verdaccio.vmit.cucloud.net'
 
       - name: Cache node modules
         uses: actions/cache@v3
@@ -49,4 +50,4 @@ jobs:
       - name: Publish Package to Verdaccio
         run: yarn publish:${{ inputs.webtier }}
         env:
-          VERDACCIO_TOKEN: ${{ secrets.VERDACCIO_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.VERDACCIO_TOKEN }}
