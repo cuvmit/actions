@@ -20,6 +20,8 @@ on:
         required: true
       aws_secret_access_key:
         required: true
+      sentry_auth_token:
+        required: false
 
 jobs:
   build-and-deploy-nodejs-api:
@@ -46,6 +48,13 @@ jobs:
 
       - name: build
         run: yarn build:${{ inputs.webtier }}
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+
+      # These are built and uploaded to Sentry in the build step. We don't want
+      # them published to prod.
+      - name: Delete source maps
+        run: rm -rf dist/**/*.map
 
       - name: set S3 target for app-sb
         run: |
