@@ -24,6 +24,7 @@ jobs:
         with:
           node-version: ${{ inputs.node_version }}
           registry-url: 'https://verdaccio.vmit.cucloud.net'
+          always-auth: true
 
       - name: Cache node modules
         uses: actions/cache@v3
