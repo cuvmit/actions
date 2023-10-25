@@ -46,10 +46,7 @@ jobs:
         run: echo VERSION=${{ env.PACKAGE_VERSION }} >> $GITHUB_ENV
         if: ${{ inputs.webtier == 'prod'}}
 
-      - name: Copy over NPM config
-        run: mv .npmrc_config .npmrc
-
       - name: Publish Package to Verdaccio
-        run: yarn publish --no-git-tag-version --new-version ${{ env.VERSION }}
+        run: yarn publish:${{ inputs.webtier }}
         env:
           VERDACCIO_TOKEN: ${{ secrets.VERDACCIO_TOKEN }}
