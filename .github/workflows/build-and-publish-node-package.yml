@@ -49,6 +49,6 @@ jobs:
         if: ${{ inputs.webtier == 'prod'}}
 
       - name: Publish Package to Verdaccio
-        run: yarn publish:${{ inputs.webtier }}
+        run: yarn publish --no-git-tag-version --new-version ${{ env.VERSION }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.VERDACCIO_TOKEN }}
