@@ -121,9 +121,7 @@ jobs:
             ${{ env.IMAGE_TAG }}
             ${{ env.TIER_POINTER_TAG }}
 
-      - uses: azure/setup-kubectl@v3.2
-        with:
-          version: 'v1.21.2'
+      - uses: azure/setup-kubectl@v4
 
       - name: Deploy to Kubernetes
         run: |
