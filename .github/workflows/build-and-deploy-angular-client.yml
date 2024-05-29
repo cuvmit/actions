@@ -74,9 +74,22 @@ jobs:
           echo S3_SYNC_HOST=vetapp-${{ inputs.webtier }}-lb.vmit.cucloud.net >> $GITHUB_ENV
         if: ${{ inputs.web_server == 'vetapp' }}
 
-      - name: Determine root of compiled code - Angular Apps
+      # Default is esbuild = false
+      - name: set esbuild flag default
+        run: echo USES_ESBUILD=0 >> $GITHUB_ENV
+
+      # Set esbuild flag if there's a directory named dist/REPO/browser
+      - name: set esbuild flag if dist browser dir exists
+        if: ${{ hashFiles('dist/**/browser') != '' }}
+        run: echo USES_ESBUILD=1 >> $GITHUB_ENV
+
+      - name: Determine root of compiled code - Angular Apps with esbuild (after v17)
+        run: echo COMPILED_ROOT=dist/${{ github.event.repository.name }}/browser >> $GITHUB_ENV
+        if: ${{ ! inputs.legacy && env.USES_ESBUILD == '1' }}
+
+      - name: Determine root of compiled code - Angular Apps without esbuild (before v17)
         run: echo COMPILED_ROOT=dist/${{ github.event.repository.name }} >> $GITHUB_ENV
-        if: ${{ ! inputs.legacy }}
+        if: ${{ ! inputs.legacy && env.USES_ESBUILD == '0' }}
 
       - name: Determine root of compiled code - Legacy AngularJS Apps
         run: echo COMPILED_ROOT=dist >> $GITHUB_ENV
