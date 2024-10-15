@@ -21,6 +21,7 @@ on:
 jobs:
   build-and-deploy-nodejs-batch:
     runs-on: ubuntu-latest
+    environment: ${{ inputs.webtier }}
     env:
       AWS_REGISTRY_URL: 165158508528.dkr.ecr.us-east-1.amazonaws.com
       K8S_CLUSTER: k8s.vmit.cucloud.net

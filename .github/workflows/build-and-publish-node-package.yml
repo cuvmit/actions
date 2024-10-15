@@ -15,6 +15,7 @@ on:
 jobs:
   build-and-publish-node-package:
     runs-on: ubuntu-latest
+    environment: ${{ inputs.webtier }}
 
     steps:
       - name: Checkout code
