@@ -77,11 +77,6 @@ jobs:
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
-      # These are built and uploaded to Sentry in the build step. We don't want
-      # them published to prod.
-      - name: Delete source maps
-        run: rm -rf dist/**/*.map
-
       - name: set main version for sb
         run: echo VERSION=${{ env.PACKAGE_VERSION }}-beta.${{ github.run_number }} >> $GITHUB_ENV
         if: ${{ inputs.webtier == 'sb'}}
