@@ -66,6 +66,6 @@ jobs:
           # Defaults to the user or organization that owns the workflow file
           scope: '@cuvmit'
 
-      - run: npm publish --no-git-tag-version --new-version ${{ env.VERSION }}
+      - run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
