@@ -21,6 +21,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # This is temporary until Verdaccio is gone.
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ inputs.node_version }}
@@ -39,10 +40,14 @@ jobs:
         run: yarn build:${{ inputs.webtier }}
 
       - name: set package version
-        run: echo PACKAGE_VERSION=$(jq --raw-output ".version" package.json) >> $GITHUB_ENV
+        run:
+          echo PACKAGE_VERSION=$(jq --raw-output ".version" package.json) >>
+          $GITHUB_ENV
 
       - name: set main version for sb
-        run: echo VERSION=${{ env.PACKAGE_VERSION }}-beta.${{ github.run_number }} >> $GITHUB_ENV
+        run:
+          echo VERSION=${{ env.PACKAGE_VERSION }}-beta.${{ github.run_number }}
+          >> $GITHUB_ENV
         if: ${{ inputs.webtier == 'sb'}}
 
       - name: set main version for prod
@@ -53,3 +58,11 @@ jobs:
         run: yarn publish --no-git-tag-version --new-version ${{ env.VERSION }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.VERDACCIO_TOKEN }}
+
+      - name: Change .npmrc File to publish to Github packages as well
+        run: echo -n "@cuvmit:registry=https://npm.pkg.github.com" > .npmrc
+
+      - name: Publish Package to Github Packages
+        run: yarn publish --no-git-tag-version --new-version ${{ env.VERSION }}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
