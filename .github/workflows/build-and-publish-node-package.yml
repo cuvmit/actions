@@ -59,10 +59,14 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.VERDACCIO_TOKEN }}
 
-      - name: Change .npmrc File to publish to Github packages as well
-        run: echo -n "@cuvmit:registry=https://npm.pkg.github.com" > .npmrc
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          registry-url: 'https://npm.pkg.github.com'
+          # Defaults to the user or organization that owns the workflow file
+          scope: '@cuvmit'
 
-      - name: Publish Package to Github Packages
-        run: yarn publish --no-git-tag-version --new-version ${{ env.VERSION }}
+      - run: npm ci
+      - run: npm publish --no-git-tag-version --new-version ${{ env.VERSION }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
