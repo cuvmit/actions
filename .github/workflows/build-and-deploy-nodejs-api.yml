@@ -42,17 +42,25 @@ jobs:
 
       # These environment vars are specific to sb
       - name: set package version
-        run: echo PACKAGE_VERSION=$(jq --raw-output ".version" package.json) >> $GITHUB_ENV
+        run:
+          echo PACKAGE_VERSION=$(jq --raw-output ".version" package.json) >>
+          $GITHUB_ENV
 
       - name: Get Prod Version
-        run: echo PROD_VERSION=$(aws ecr describe-images --repository-name ${{ github.event.repository.name }} | jq --raw-output '.imageDetails[] | .imageTags | select(.[1]) | select(.[0] == "prod" or .[1] == "prod") | if .[1] == "prod" then .[0] else .[1] end') >> $GITHUB_ENV
+        run:
+          echo PROD_VERSION=$(aws ecr describe-images --repository-name ${{
+          github.event.repository.name }} | jq --raw-output '.imageDetails[] |
+          .imageTags | select(.[1]) | select(.[0] == "prod" or .[1] == "prod") |
+          if .[1] == "prod" then .[0] else .[1] end') >> $GITHUB_ENV
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: 'us-east-1'
 
       - name: Print versions
-        run: echo Package Version is ${{ env.PACKAGE_VERSION }} and production Version is ${{ env.PROD_VERSION }}
+        run:
+          echo Package Version is ${{ env.PACKAGE_VERSION }} and production
+          Version is ${{ env.PROD_VERSION }}
 
       - name: Exit if equal
         if: ${{ env.PACKAGE_VERSION == env.PROD_VERSION }}
@@ -63,6 +71,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ inputs.node_version }}
+          registry-url: 'https://npm.pkg.github.com'
+          # These following two lines are the key:
+          always-auth: true
+          scope: '@cuvmit'
 
       - name: Cache node modules
         uses: actions/cache@v4
@@ -78,7 +90,9 @@ jobs:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
       - name: set main version for sb
-        run: echo VERSION=${{ env.PACKAGE_VERSION }}-beta.${{ github.run_number }} >> $GITHUB_ENV
+        run:
+          echo VERSION=${{ env.PACKAGE_VERSION }}-beta.${{ github.run_number }}
+          >> $GITHUB_ENV
         if: ${{ inputs.webtier == 'sb'}}
 
       - name: set main version for prod
@@ -86,13 +100,19 @@ jobs:
         if: ${{ inputs.webtier == 'prod'}}
 
       - name: set Docker image tag
-        run: echo IMAGE_TAG=${{ env.AWS_REGISTRY_URL }}/${{ github.event.repository.name }}:${{ env.VERSION }} >> $GITHUB_ENV
+        run:
+          echo IMAGE_TAG=${{ env.AWS_REGISTRY_URL }}/${{
+          github.event.repository.name }}:${{ env.VERSION }} >> $GITHUB_ENV
 
       - name: set Tier Pointer tag
-        run: echo TIER_POINTER_TAG=${{ env.AWS_REGISTRY_URL }}/${{ github.event.repository.name }}:${{ inputs.webtier }} >> $GITHUB_ENV
+        run:
+          echo TIER_POINTER_TAG=${{ env.AWS_REGISTRY_URL }}/${{
+          github.event.repository.name }}:${{ inputs.webtier }} >> $GITHUB_ENV
 
       - name: set K8S Name
-        run: echo K8S_NAME=$(echo ${{github.event.repository.name }} | tr _ -) >> $GITHUB_ENV
+        run:
+          echo K8S_NAME=$(echo ${{github.event.repository.name }} | tr _ -) >>
+          $GITHUB_ENV
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
