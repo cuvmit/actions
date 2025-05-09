@@ -67,10 +67,11 @@ jobs:
           # Defaults to the user or organization that owns the workflow file
           scope: '@cuvmit'
 
+        # Once verdaccio is removed this needs to be added before npm publish: 
+        # npm version --no-git-tag-version --allow-same-version --workspaces-update=false --workspace=$(dirname ${pkg}) ${VERSION}
       - run: |
           for pkg in $(find dist -name package.json); do
             VERSION=$(jq --raw-output ".version" ${pkg})${{ env.VERSION_SUFFIX }}
-            npm version --no-git-tag-version --allow-same-version --workspaces-update=false --workspace=$(dirname ${pkg}) ${VERSION}
             npm publish $(dirname ${pkg}) --tag ${{ env.PACKAGE_TAG }} 
           done
         env:
