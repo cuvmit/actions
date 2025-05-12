@@ -36,26 +36,30 @@ jobs:
           path: ./node_modules
           key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
 
-      - name: build
-        run: yarn build:${{ inputs.webtier }}
-
       - name: set main version suffix for sb
         run: |
-          echo VERSION_SUFFIX=-beta.${{ github.run_number }} >> $GITHUB_ENV
+          echo VERSION_PREID=beta.${{ github.run_number }} >> $GITHUB_ENV
+          echo VERSION_MODIFIER=prerelease >> $GITHUB_ENV
           echo PACKAGE_TAG=beta >> $GITHUB_ENV
         if: ${{ inputs.webtier == 'sb'}}
 
       - name: set main version suffix for prod
         run: |
-          echo VERSION_SUFFIX= >> $GITHUB_ENV
+          echo VERSION_PREID=rc >> $GITHUB_ENV
+          echo VERSION_MODIFIER=patch >> $GITHUB_ENV
           echo PACKAGE_TAG=latest >> $GITHUB_ENV
         if: ${{ inputs.webtier == 'prod'}}
+
+      - name: set package versions
+        run: yarn exec:${{ inputs.webtier }} -- npm version --no-git-tag-version --no-workspaces-update --preid=${{ env.VERSION_PREID }} ${{ env.VERSION_MODIFIER }}
+
+      - name: build
+        run: yarn build:${{ inputs.webtier }}
 
       - name: Publish Package to Verdaccio
         run: |
           for pkg in $(find dist -name package.json); do
-            VERSION=$(jq --raw-output ".version" $pkg)${{ env.VERSION_SUFFIX }}
-            yarn publish $(dirname ${pkg}) --no-git-tag-version --tag ${{ env.PACKAGE_TAG }} --new-version ${VERSION}
+            npm publish $(dirname ${pkg}) --tag ${{ env.PACKAGE_TAG }}
           done
         env:
           NODE_AUTH_TOKEN: ${{ secrets.VERDACCIO_TOKEN }}
@@ -67,11 +71,9 @@ jobs:
           # Defaults to the user or organization that owns the workflow file
           scope: '@cuvmit'
 
-        # Once verdaccio is removed this needs to be added before npm publish: 
-        # npm version --no-git-tag-version --allow-same-version --workspaces-update=false --workspace=$(dirname ${pkg}) ${VERSION}
-      - run: |
+      - name: Publish Package to Github Registry
+        run: |
           for pkg in $(find dist -name package.json); do
-            VERSION=$(jq --raw-output ".version" ${pkg})${{ env.VERSION_SUFFIX }}
             npm publish $(dirname ${pkg}) --tag ${{ env.PACKAGE_TAG }} 
           done
         env:
