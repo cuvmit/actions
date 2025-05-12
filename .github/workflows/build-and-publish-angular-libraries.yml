@@ -36,11 +36,12 @@ jobs:
           path: ./node_modules
           key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
 
-      - name: set main version suffix for sb
+      - name: set main version suffix for sb and fetch main refs
         run: |
           echo VERSION_PREID=beta.${{ github.run_number }} >> $GITHUB_ENV
           echo VERSION_MODIFIER=prerelease >> $GITHUB_ENV
           echo PACKAGE_TAG=beta >> $GITHUB_ENV
+          git fetch origin main
         if: ${{ inputs.webtier == 'sb'}}
 
       - name: set main version suffix for prod
