@@ -1,0 +1,83 @@
+name: build-and-publish-angular-libraries
+on:
+  workflow_call:
+    inputs:
+      webtier:
+        required: true
+        type: string
+      node_version:
+        required: true
+        type: string
+    secrets:
+      verdaccio_token:
+        required: true
+
+jobs:
+  build-and-publish-angular-libaries:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.webtier }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      # This is temporary until Verdaccio is gone.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node_version }}
+          registry-url: 'https://verdaccio.vmit.cucloud.net'
+          always-auth: true
+
+      - name: Cache node modules
+        uses: actions/cache@v4
+        env:
+          cache-name: cache-node-modules
+        with:
+          path: ./node_modules
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+
+      - name: set main version suffix for sb and fetch main refs
+        run: |
+          echo VERSION_PREID=beta.${{ github.run_number }} >> $GITHUB_ENV
+          echo VERSION_MODIFIER=prerelease >> $GITHUB_ENV
+          echo PACKAGE_TAG=beta >> $GITHUB_ENV
+          git fetch origin main
+        if: ${{ inputs.webtier == 'sb'}}
+
+      - name: set main version suffix for prod
+        run: |
+          echo VERSION_PREID=rc >> $GITHUB_ENV
+          echo VERSION_MODIFIER=patch >> $GITHUB_ENV
+          echo PACKAGE_TAG=latest >> $GITHUB_ENV
+        if: ${{ inputs.webtier == 'prod'}}
+
+      - name: set package versions
+        run: yarn exec:${{ inputs.webtier }} -- npm version --no-git-tag-version --no-workspaces-update --preid=${{ env.VERSION_PREID }} ${{ env.VERSION_MODIFIER }}
+
+      - name: build
+        run: yarn build:${{ inputs.webtier }}
+
+      - name: Publish Package to Verdaccio
+        run: |
+          for pkg in $(find dist -name package.json); do
+            npm publish $(dirname ${pkg}) --tag ${{ env.PACKAGE_TAG }}
+          done
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.VERDACCIO_TOKEN }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node_version }}
+          registry-url: 'https://npm.pkg.github.com'
+          # Defaults to the user or organization that owns the workflow file
+          scope: '@cuvmit'
+
+      - name: Publish Package to Github Registry
+        run: |
+          for pkg in $(find dist -name package.json); do
+            npm publish $(dirname ${pkg}) --tag ${{ env.PACKAGE_TAG }} 
+          done
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
