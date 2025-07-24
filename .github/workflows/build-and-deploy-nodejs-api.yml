@@ -93,6 +93,8 @@ jobs:
 
       - name: prep-for-docker
         run: yarn prep-for-docker
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: set main version for sb
         run:
