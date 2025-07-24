@@ -91,6 +91,9 @@ jobs:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: prep-for-docker
+        run: yarn prep-for-docker
+
       - name: set main version for sb
         run:
           echo VERSION=${{ env.PACKAGE_VERSION }}-beta.${{ github.run_number }}
