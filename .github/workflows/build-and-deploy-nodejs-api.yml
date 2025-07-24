@@ -17,8 +17,6 @@ on:
         required: true
       aws_secret_access_key:
         required: true
-      gh_packages_cuvmit_token:
-        required: true
       k8s_token:
         required: true
       k8s_ca:
@@ -73,10 +71,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ inputs.node_version }}
-          registry-url: 'https://npm.pkg.github.com'
-          # These following two lines are the key:
-          always-auth: true
-          scope: '@cuvmit'
+
+      - name: Configure npm for GitHub Packages
+        run: |
+          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" > ~/.npmrc
 
       - name: Cache node modules
         uses: actions/cache@v4
@@ -90,7 +88,6 @@ jobs:
         run: yarn build:${{ inputs.webtier }}
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          NODE_AUTH_TOKEN: ${{ secrets.GH_PACKAGES_CUVMIT_TOKEN }}
 
       - name: set main version for sb
         run:
