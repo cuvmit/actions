@@ -35,9 +35,6 @@ jobs:
     defaults:
       run:
         working-directory: ${{ inputs.working_directory }}
-    permissions:
-      contents: read
-      packages: read
 
     steps:
       - name: Checkout code
@@ -74,15 +71,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ inputs.node_version }}
-          registry-url: 'https://npm.pkg.github.com'
-          scope: '@cuvmit' # Replace with your GitHub scope (username or organization)
 
       - name: Get yarn cache directory path
         id: yarn-cache-dir-path
         run: echo "dir=$(yarn cache dir)" >> $GITHUB_OUTPUT
 
       - uses: actions/cache@v4
-        id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
+        id: yarn-cache
         with:
           path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
@@ -93,12 +88,6 @@ jobs:
         run: yarn build:${{ inputs.webtier }}
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: prep-for-docker
-        run: yarn prep-for-docker
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: set main version for sb
         run:
