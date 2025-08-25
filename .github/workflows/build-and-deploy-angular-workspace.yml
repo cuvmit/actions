@@ -74,47 +74,59 @@ jobs:
 
       # The next two steps should be a loop of some sort
       - name: Determine root of compiled code - Angular Apps
-        run: echo COMPILED_ROOT=dist/${{ inputs.project1 }} >> $GITHUB_ENV
+        run:
+          echo COMPILED_ROOT=dist/${{ inputs.project1 }}/browser >> $GITHUB_ENV
 
       - name: Synchronize compiled code to S3 - Angular apps
-        run: aws s3 sync --delete ${{ env.COMPILED_ROOT }} s3://${{ env.S3_BUCKET }}/${{ inputs.project1 }}
+        run:
+          aws s3 sync --delete ${{ env.COMPILED_ROOT }} s3://${{ env.S3_BUCKET
+          }}/${{ inputs.project1 }}
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: 'us-east-1'
 
       - name: Determine root of compiled code - Angular Apps
-        run: echo COMPILED_ROOT=dist/${{ inputs.project2 }} >> $GITHUB_ENV
+        run:
+          echo COMPILED_ROOT=dist/${{ inputs.project2 }}/browser >> $GITHUB_ENV
 
       - name: Synchronize compiled code to S3 - Angular apps
-        run: aws s3 sync --delete ${{ env.COMPILED_ROOT }} s3://${{ env.S3_BUCKET }}/${{ inputs.project2 }}
+        run:
+          aws s3 sync --delete ${{ env.COMPILED_ROOT }} s3://${{ env.S3_BUCKET
+          }}/${{ inputs.project2 }}
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: 'us-east-1'
 
-      # Commented out because public-ip is unreliable.  The security group is now open to all
-      # - name: Get Github action IP
-      #  id: ip
-      #  uses: haythem/public-ip@v1.3
+      # We used to use haythem/public-ip@v1.3 but the underlying public IP service it used was unreliable.
+      # So this is the technique from https://github.com/haythem/public-ip/issues/23
+      - name: Get Public IP
+        id: publicip
+        run: |
+          response=$(curl -s canhazip.com)
+          echo "ip='$response'" >> "$GITHUB_OUTPUT"
 
-      #- name: Vetapp only - add Github Actions IP to Security group cloud-ci-tools
-      #  run: |
-      #    aws ec2 authorize-security-group-ingress --group-id sg-06a1c0133c41d79b9 --protocol tcp --port 443 --cidr ${{ steps.ip.outputs.ipv4 }}/32
-      #  env:
-      #    AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      #    AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      #    AWS_DEFAULT_REGION: 'us-east-1'
-      #  if: ${{ inputs.web_server == 'vetapp' }}
+      - name:
+          Vetapp only - add Github Actions IP to Security group cloud-ci-tools
+        run: |
+          aws ec2 authorize-security-group-ingress --group-id sg-06a1c0133c41d79b9 --protocol tcp --port 443 --cidr ${{ steps.publicip.outputs.ip }}/32
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: 'us-east-1'
+        if: ${{ inputs.web_server == 'vetapp' }}
 
       - name: Trigger sync from S3 to web_server
         run: curl -k https://${{ env.S3_SYNC_HOST }}/cgi-bin/s3sync
 
-      #- name: Vetapp only - remove Github Actions IP from Security group cloud-ci-tools
-      #  run: |
-      #    aws ec2 revoke-security-group-ingress --group-id sg-06a1c0133c41d79b9 --protocol tcp --port 443 --cidr ${{ steps.ip.outputs.ipv4 }}/32
-      #  env:
-      #    AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      #    AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      #    AWS_DEFAULT_REGION: 'us-east-1'
-      #  if: ${{ inputs.web_server == 'vetapp' }}
+      - name:
+          Vetapp only - remove Github Actions IP from Security group
+          cloud-ci-tools
+        run: |
+          aws ec2 revoke-security-group-ingress --group-id sg-06a1c0133c41d79b9 --protocol tcp --port 443 --cidr ${{ steps.publicip.outputs.ip }}/32
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: 'us-east-1'
+        if: ${{ inputs.web_server == 'vetapp' }}
