@@ -24,7 +24,7 @@ on:
         required: false
 
 jobs:
-  build-and-deploy-nodejs-api:
+  build-and-deploy-angular-client:
     runs-on: ubuntu-latest
     environment: ${{ inputs.webtier }}
     env:
@@ -84,12 +84,20 @@ jobs:
         if: ${{ hashFiles('dist/**/browser') != '' }}
         run: echo USES_ESBUILD=1 >> $GITHUB_ENV
 
-      - name: Determine root of compiled code - Angular Apps with esbuild (after v17)
-        run: echo COMPILED_ROOT=dist/${{ github.event.repository.name }}/browser >> $GITHUB_ENV
+      - name:
+          Determine root of compiled code - Angular Apps with esbuild (after
+          v17)
+        run:
+          echo COMPILED_ROOT=dist/${{ github.event.repository.name }}/browser >>
+          $GITHUB_ENV
         if: ${{ ! inputs.legacy && env.USES_ESBUILD == '1' }}
 
-      - name: Determine root of compiled code - Angular Apps without esbuild (before v17)
-        run: echo COMPILED_ROOT=dist/${{ github.event.repository.name }} >> $GITHUB_ENV
+      - name:
+          Determine root of compiled code - Angular Apps without esbuild (before
+          v17)
+        run:
+          echo COMPILED_ROOT=dist/${{ github.event.repository.name }} >>
+          $GITHUB_ENV
         if: ${{ ! inputs.legacy && env.USES_ESBUILD == '0' }}
 
       - name: Determine root of compiled code - Legacy AngularJS Apps
@@ -97,7 +105,9 @@ jobs:
         if: ${{ inputs.legacy }}
 
       - name: Synchronize compiled code to S3 - Angular apps
-        run: aws s3 sync --delete ${{ env.COMPILED_ROOT }} s3://${{ env.S3_BUCKET }}/${{ github.event.repository.name }}
+        run:
+          aws s3 sync --delete ${{ env.COMPILED_ROOT }} s3://${{ env.S3_BUCKET
+          }}/${{ github.event.repository.name }}
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -111,7 +121,8 @@ jobs:
           response=$(curl -s canhazip.com)
           echo "ip='$response'" >> "$GITHUB_OUTPUT"
 
-      - name: Vetapp only - add Github Actions IP to Security group cloud-ci-tools
+      - name:
+          Vetapp only - add Github Actions IP to Security group cloud-ci-tools
         run: |
           aws ec2 authorize-security-group-ingress --group-id sg-06a1c0133c41d79b9 --protocol tcp --port 443 --cidr ${{ steps.publicip.outputs.ip }}/32
         env:
@@ -123,7 +134,9 @@ jobs:
       - name: Trigger sync from S3 to web_server
         run: curl -k https://${{ env.S3_SYNC_HOST }}/cgi-bin/s3sync
 
-      - name: Vetapp only - remove Github Actions IP from Security group cloud-ci-tools
+      - name:
+          Vetapp only - remove Github Actions IP from Security group
+          cloud-ci-tools
         run: |
           aws ec2 revoke-security-group-ingress --group-id sg-06a1c0133c41d79b9 --protocol tcp --port 443 --cidr ${{ steps.publicip.outputs.ip }}/32
         env:

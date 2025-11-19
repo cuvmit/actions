@@ -28,7 +28,7 @@ on:
         required: true
 
 jobs:
-  build-and-deploy-nodejs-api:
+  build-and-deploy-angular-workspace:
     runs-on: ubuntu-latest
     environment: ${{ inputs.webtier }}
     env:
