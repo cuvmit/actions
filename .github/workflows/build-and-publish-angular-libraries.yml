@@ -61,7 +61,7 @@ jobs:
 
       - name: Publish Package to Verdaccio
         run: |
-          for pkg in $(find dist -name package.json -depth 3); do
+          for pkg in $(find dist -name package.json -maxdepth 3); do
             npm publish $(dirname ${pkg}) --tag ${{ env.PACKAGE_TAG }}
           done
         env:
@@ -76,7 +76,7 @@ jobs:
 
       - name: Publish Package to Github Registry
         run: |
-          for pkg in $(find dist -name package.json -depth 3); do
+          for pkg in $(find dist -name package.json -maxdepth 3); do
             npm publish $(dirname ${pkg}) --tag ${{ env.PACKAGE_TAG }} 
           done
         env:
