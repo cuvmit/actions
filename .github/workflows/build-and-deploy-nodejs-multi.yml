@@ -145,7 +145,7 @@ jobs:
           # the repo's :sb or :prod tag, which was created in the publish step.  Then we'll point it to the
           # exact version tag.
           RESPONSE=$(kubectl get deployment/${{ env.K8S_NAME }}-${{ inputs.webtier }}-deployment --ignore-not-found)
-          if [ -z $RESPONSE ]
+          if [ -z "$RESPONSE" ]
           then
             kubectl create --save-config -f config/k8s/${{ env.K8S_NAME }}-${{ inputs.webtier }}.yaml
           else
@@ -154,7 +154,7 @@ jobs:
 
           kubectl set image deployment/${{ env.K8S_NAME }}-${{ inputs.webtier }}-deployment ${{ env.K8S_NAME }}-${{ inputs.webtier }}=${{ env.IMAGE_TAG }}
           OTHER_DEPLOYMENTS="${{ inputs.additional_deployments }}"
-          if [ -n $OTHER_DEPLOYMENTS ]
+          if [ -n "$OTHER_DEPLOYMENTS" ]
           then
             IFS=',' read -r -a array <<< "$OTHER_DEPLOYMENTS"
 
