@@ -28,9 +28,10 @@ on:
         required: true
       sentry_auth_token:
         required: false
-    permissions:
-      contents: read
-      packages: read
+
+permissions:
+  contents: read
+  packages: read
 
 jobs:
   build-and-deploy-nodejs-api:
