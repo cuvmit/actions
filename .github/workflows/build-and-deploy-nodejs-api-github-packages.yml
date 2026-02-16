@@ -79,6 +79,8 @@ jobs:
         with:
           node-version: ${{ inputs.node_version }}
           cache: 'yarn'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # - name: Get yarn cache directory path
       #   id: yarn-cache-dir-path
