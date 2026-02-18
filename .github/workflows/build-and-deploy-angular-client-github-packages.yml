@@ -40,8 +40,6 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: ${{ inputs.node_version }}
-        with:
-          node-version: ${{ inputs.node_version }}
           cache: 'yarn'
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
