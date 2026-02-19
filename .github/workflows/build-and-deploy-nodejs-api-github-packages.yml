@@ -1,6 +1,3 @@
-# This is temporarily split out until we can verify Github Packages works.  When it does,
-# we can merge it back into build-and-deploy-general-api and use different setup depending
-# on whether .npmrc is present
 name: build-and-deploy-nodejs-api-github-packages
 on:
   workflow_call:
@@ -34,7 +31,7 @@ permissions:
   packages: read
 
 jobs:
-  build-and-deploy-nodejs-api:
+  build-and-deploy-nodejs-api-github-packages:
     runs-on: ubuntu-latest
     environment: ${{ inputs.webtier }}
     env:
@@ -75,43 +72,18 @@ jobs:
           echo 'CTRL-Z!  You forgot to bump your version number, comrade!  Edit the version number in package.json and commit to re-run.'
           this_command_doesnt_exist_so_exit
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: ${{ inputs.node_version }}
           cache: 'yarn'
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # - name: Get yarn cache directory path
-      #   id: yarn-cache-dir-path
-      #   run: echo "dir=$(yarn cache dir)" >> $GITHUB_OUTPUT
-      #   # This is needed because yarn cache dir fails if you don't pass it.
-      #   env:
-      #     NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      # - name: Restore cache node modules
-      #   uses: actions/cache/restore@v5
-      #   with:
-      #     path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
-      #     key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-
       - name: build
         run: yarn build:${{ inputs.webtier }}
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: build-for-docker
-        run: yarn build-for-docker:${{ inputs.webtier }}
-        env:
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      # - name: Save cache node modules for docker
-      #   uses: actions/cache/save@v5
-      #   with:
-      #     path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
-      #     key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
 
       - name: set main version for sb
         run:
