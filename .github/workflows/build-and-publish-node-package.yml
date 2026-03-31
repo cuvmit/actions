@@ -48,14 +48,17 @@ jobs:
         run:
           echo VERSION=${{ env.PACKAGE_VERSION }}-beta.${{ github.run_number }}
           >> $GITHUB_ENV
+          echo PACKAGE_TAG=beta >> $GITHUB_ENV
         if: ${{ inputs.webtier == 'sb'}}
 
       - name: set main version for prod
-        run: echo VERSION=${{ env.PACKAGE_VERSION }} >> $GITHUB_ENV
+        run: |
+          echo VERSION=${{ env.PACKAGE_VERSION }} >> $GITHUB_ENV
+          echo PACKAGE_TAG=latest >> $GITHUB_ENV
         if: ${{ inputs.webtier == 'prod'}}
 
       - name: Publish Package to Verdaccio
-        run: yarn publish --no-git-tag-version --new-version ${{ env.VERSION }}
+        run: yarn publish --no-git-tag-version --new-version ${{ env.VERSION }} --tag ${{ env.PACKAGE_TAG }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.VERDACCIO_TOKEN }}
 
@@ -66,6 +69,6 @@ jobs:
           # Defaults to the user or organization that owns the workflow file
           scope: '@cuvmit'
 
-      - run: npm publish
+      - run: npm publish --tag ${{ env.PACKAGE_TAG }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
