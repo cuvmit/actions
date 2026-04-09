@@ -70,16 +70,10 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # This is temporary until Verdaccio is gone.
-      - uses: actions/setup-node@v6
-        with:
-          node-version: ${{ inputs.node_version }}
-          registry-url: 'https://verdaccio.vmit.cucloud.net'
-          always-auth: true
-      
       - name: Publish Package to Verdaccio
         run: |
           for pkg in $(find dist -name package.json -maxdepth 3); do
-            npm publish $(dirname ${pkg}) --tag ${{ env.PACKAGE_TAG }}
+            npm publish $(dirname ${pkg}) --@cuvmit:registry=https://verdaccio.vmit.cucloud.net --tag ${{ env.PACKAGE_TAG }}
           done
         env:
           NODE_AUTH_TOKEN: ${{ secrets.VERDACCIO_TOKEN }}
