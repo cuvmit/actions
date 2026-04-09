@@ -23,20 +23,15 @@ jobs:
         with:
           fetch-depth: 2
 
-      # This is temporary until Verdaccio is gone.
       - uses: actions/setup-node@v6
         with:
           node-version: ${{ inputs.node_version }}
-          registry-url: 'https://verdaccio.vmit.cucloud.net'
-          always-auth: true
-
-      - name: Cache node modules
-        uses: actions/cache@v5
+          registry-url: 'https://npm.pkg.github.com'
+          # Defaults to the user or organization that owns the workflow file
+          scope: '@cuvmit'
+          cache: 'yarn'
         env:
-          cache-name: cache-node-modules
-        with:
-          path: ./node_modules
-          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: set main version suffix for sb and fetch main refs
         run: |
@@ -58,24 +53,13 @@ jobs:
           yarn exec:${{ inputs.webtier }} -- npm version --no-git-tag-version
           --no-workspaces-update --preid=${{ env.VERSION_PREID }} ${{
           env.VERSION_MODIFIER }}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: build
         run: yarn build:${{ inputs.webtier }}
-
-      - name: Publish Package to Verdaccio
-        run: |
-          for pkg in $(find dist -name package.json -maxdepth 3); do
-            npm publish $(dirname ${pkg}) --tag ${{ env.PACKAGE_TAG }}
-          done
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.VERDACCIO_TOKEN }}
-
-      - uses: actions/setup-node@v6
-        with:
-          node-version: ${{ inputs.node_version }}
-          registry-url: 'https://npm.pkg.github.com'
-          # Defaults to the user or organization that owns the workflow file
-          scope: '@cuvmit'
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish Package to Github Registry
         run: |
@@ -84,3 +68,18 @@ jobs:
           done
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # This is temporary until Verdaccio is gone.
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ inputs.node_version }}
+          registry-url: 'https://verdaccio.vmit.cucloud.net'
+          always-auth: true
+      
+      - name: Publish Package to Verdaccio
+        run: |
+          for pkg in $(find dist -name package.json -maxdepth 3); do
+            npm publish $(dirname ${pkg}) --tag ${{ env.PACKAGE_TAG }}
+          done
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.VERDACCIO_TOKEN }}
