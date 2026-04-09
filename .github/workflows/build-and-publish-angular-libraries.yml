@@ -8,9 +8,6 @@ on:
       node_version:
         required: true
         type: string
-    secrets:
-      verdaccio_token:
-        required: true
 
 jobs:
   build-and-publish-angular-libaries:
@@ -68,12 +65,3 @@ jobs:
           done
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      # This is temporary until Verdaccio is gone.
-      - name: Publish Package to Verdaccio
-        run: |
-          for pkg in $(find dist -name package.json -maxdepth 3); do
-            npm publish $(dirname ${pkg}) --@cuvmit:registry=https://verdaccio.vmit.cucloud.net --tag ${{ env.PACKAGE_TAG }}
-          done
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.VERDACCIO_TOKEN }}
