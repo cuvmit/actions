@@ -80,12 +80,14 @@ jobs:
         with:
           node-version: ${{ inputs.node_version }}
           cache: 'yarn'
+          registry-url: 'https://registry.npmjs.org'
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: build
         run: yarn build:${{ inputs.webtier }}
         env:
+          YARN_@CUVMIT:registry: 'https://npm.pkg.github.com'
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
