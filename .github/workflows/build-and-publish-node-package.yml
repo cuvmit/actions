@@ -8,9 +8,6 @@ on:
       node_version:
         required: true
         type: string
-    secrets:
-      verdaccio_token:
-        required: true
 
 jobs:
   build-and-publish-node-package:
@@ -21,12 +18,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
 
-      # This is temporary until Verdaccio is gone.
-      - uses: actions/setup-node@v6
+    - uses: actions/setup-node@v6
         with:
           node-version: ${{ inputs.node_version }}
-          registry-url: 'https://verdaccio.vmit.cucloud.net'
-          always-auth: true
+          registry-url: 'https://npm.pkg.github.com'
+          # Defaults to the user or organization that owns the workflow file
+          scope: '@cuvmit'
+          cache: 'yarn'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Cache node modules
         uses: actions/cache@v5
@@ -55,18 +55,6 @@ jobs:
           echo VERSION=${{ env.PACKAGE_VERSION }} >> $GITHUB_ENV
           echo PACKAGE_TAG=latest >> $GITHUB_ENV
         if: ${{ inputs.webtier == 'prod'}}
-
-      - name: Publish Package to Verdaccio
-        run: yarn publish --no-git-tag-version --new-version ${{ env.VERSION }} --tag ${{ env.PACKAGE_TAG }}
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.VERDACCIO_TOKEN }}
-
-      - uses: actions/setup-node@v6
-        with:
-          node-version: '20.x'
-          registry-url: 'https://npm.pkg.github.com'
-          # Defaults to the user or organization that owns the workflow file
-          scope: '@cuvmit'
 
       - run: npm publish --tag ${{ env.PACKAGE_TAG }}
         env:
