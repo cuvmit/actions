@@ -56,6 +56,11 @@ jobs:
           echo PACKAGE_TAG=latest >> $GITHUB_ENV
         if: ${{ inputs.webtier == 'prod'}}
 
+      - name: Change version in package.json
+        run: yarn version --no-git-tag-version --new-version ${{ env.VERSION }}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - run: npm publish --tag ${{ env.PACKAGE_TAG }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
