@@ -47,7 +47,8 @@ jobs:
         with:
           node-version: ${{ inputs.node_version }}
           cache: 'yarn'
-          registry-url: 'https://registry.npmjs.org'
+          registry-url: 'https://npm.pkg.github.com'
+          scope: '@cuvmit'
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
