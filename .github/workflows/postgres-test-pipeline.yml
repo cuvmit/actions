@@ -4,11 +4,11 @@ on:
     inputs:
       node_version:
         required: false
-        default: '18'
+        default: "26"
         type: string
       working_directory:
         required: false
-        default: '.'
+        default: "."
         type: string
 
 jobs:
@@ -37,7 +37,7 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: ${{ inputs.node_version }}
-          cache: 'yarn'
+          cache: "yarn"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
