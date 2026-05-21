@@ -97,41 +97,10 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Write ECR lifecycle policy
-        run: |
-          cat > "${{ runner.temp }}/ecr-lifecycle-policy.json" << 'EOF'
-          {
-            "rules": [
-              {
-                "rulePriority": 1,
-                "description": "Keep all sb and prod tagged images (high count = always keep)",
-                "selection": {
-                  "tagStatus": "tagged",
-                  "tagPrefixList": ["sb", "prod"],
-                  "countType": "imageCountMoreThan",
-                  "countNumber": 1000
-                },
-                "action": { "type": "expire" }
-              },
-              {
-                "rulePriority": 2,
-                "description": "Expire all versions older than the newest 5 (Applies to all remaining tagged images)",
-                "selection": {
-                  "tagStatus": "any",
-                  "countType": "imageCountMoreThan",
-                  "countNumber": 5
-                },
-                "action": { "type": "expire" }
-              }
-            ]
-          }
-          EOF
-
-      - name: Create repo if doesn't exist (ECR)
-        uses: int128/create-ecr-repository-action@v1
+      - name: Create ECR repo with lifecycle policy
+        uses: cuvmit/actions/cvm-actions/create-ecr-repo@main
         with:
           repository: ${{ github.event.repository.name }}
-          lifecycle-policy: ${{ runner.temp }}/ecr-lifecycle-policy.json
 
       - name: Build and push
         uses: docker/build-push-action@v7
