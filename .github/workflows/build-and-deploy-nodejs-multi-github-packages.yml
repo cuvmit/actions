@@ -138,10 +138,10 @@ jobs:
             "rules": [
               {
                 "rulePriority": 1,
-                "description": "Keep all SB and PROD tagged images (high count = always keep)",
+                "description": "Keep all sb and prod tagged images (high count = always keep)",
                 "selection": {
                   "tagStatus": "tagged",
-                  "tagPrefixList": ["SB", "PROD"],
+                  "tagPrefixList": ["sb", "prod"],
                   "countType": "imageCountMoreThan",
                   "countNumber": 1000
                 },
