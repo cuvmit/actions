@@ -1,4 +1,4 @@
-name: build-and-publish-angular-libraries
+name: build-and-publish-libraries
 on:
   workflow_call:
     inputs:
@@ -10,7 +10,7 @@ on:
         type: string
 
 jobs:
-  build-and-publish-angular-libaries:
+  build-and-publish-libaries:
     runs-on: ubuntu-latest
     environment: ${{ inputs.webtier }}
 
