@@ -8,10 +8,6 @@ on:
       node_version:
         required: true
         type: string
-      working_directory:
-        required: false
-        default: '.'
-        type: string
     secrets:
       aws_access_key_id:
         required: true
@@ -90,8 +86,17 @@ jobs:
       - name: build
         run: pnpm run ci:${{ inputs.webtier }}
 
-      - name: Prune dev dependencies
-        run: pnpm prune --prod
+      - name:
+          copy only the production dependencies to a side directory for use in
+          Docker
+        run: pnpm --filter . deploy --prod ./isolated-deploy
+
+      # TODO: I'm not sure how to generailze this yet.
+      - name: copy the just-built custom app artifacts as well.
+        run:
+          cp -r dist ./isolated-deploy/dist && cp -r package.json
+          ./isolated-deploy && cp -r config/*.xlsx ./isolated-deploy/config &&
+          cp -r config/*.html ./isolated-deploy/config
 
       - name: set main version for sb
         run:
@@ -144,7 +149,7 @@ jobs:
             webtier=${{ inputs.webtier }}
             aws_access_key_id=${{ secrets.aws_access_key_id }}
             aws_secret_access_key=${{ secrets.aws_secret_access_key }}
-          context: ${{ inputs.working_directory }}
+          context: ./isolated-deploy
           push: true
           tags: |
             ${{ env.IMAGE_TAG }}
