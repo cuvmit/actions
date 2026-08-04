@@ -86,7 +86,7 @@ jobs:
       - name:
           copy only the production dependencies to a side directory for use in
           Docker
-        run: pnpm --filter . deploy --prod ./isolated-deploy
+        run: pnpm --filter . deploy --prod --legacy ./isolated-deploy
 
       # TODO: I'm not sure how to generailze this yet.
       - name: copy the just-built custom app artifacts as well.
