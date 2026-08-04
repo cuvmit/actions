@@ -30,9 +30,6 @@ jobs:
     environment: ${{ inputs.webtier }}
     env:
       AWS_REGISTRY_URL: 165158508528.dkr.ecr.us-east-1.amazonaws.com
-    defaults:
-      run:
-        working-directory: ${{ inputs.working_directory }}
 
     steps:
       - name: Checkout code
