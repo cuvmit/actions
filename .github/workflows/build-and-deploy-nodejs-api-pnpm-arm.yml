@@ -92,8 +92,7 @@ jobs:
       - name: copy the just-built custom app artifacts as well.
         run:
           cp -r dist ./isolated-deploy/dist && cp -r package.json
-          ./isolated-deploy && cp -r config/*.xlsx ./isolated-deploy/config &&
-          cp -r config/*.html ./isolated-deploy/config
+          ./isolated-deploy && cp -r config/*.xlsx ./isolated-deploy/config
 
       - name: set main version for sb
         run:
