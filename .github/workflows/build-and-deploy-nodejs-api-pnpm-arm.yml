@@ -152,10 +152,14 @@ jobs:
         with:
           repository: ${{ github.event.repository.name }}
 
+      - name: Set up QEMU.  Necessariy for cross-building Docker image on arm64
+        uses: docker/setup-qemu-action@v4
+
       - name: Build and push
         uses: docker/build-push-action@v7
         with:
           build-args: |
+            platforms: linux/arm64
             webtier=${{ inputs.webtier }}
             aws_access_key_id=${{ secrets.aws_access_key_id }}
             aws_secret_access_key=${{ secrets.aws_secret_access_key }}
