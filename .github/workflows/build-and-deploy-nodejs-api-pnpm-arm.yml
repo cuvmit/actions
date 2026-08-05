@@ -158,8 +158,8 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v7
         with:
+          platforms: linux/arm64
           build-args: |
-            platforms: linux/arm64
             webtier=${{ inputs.webtier }}
             aws_access_key_id=${{ secrets.aws_access_key_id }}
             aws_secret_access_key=${{ secrets.aws_secret_access_key }}
