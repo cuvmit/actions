@@ -82,7 +82,7 @@ jobs:
           echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
 
       - name: Restore pnpm cache
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         id: pnpm-cache-restore
         with:
           path: ${{ env.STORE_PATH }}
@@ -98,7 +98,7 @@ jobs:
 
       # This captures full node_modules + store before any pruning/deploying occurs!
       - name: Save pnpm cache
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v6
         # Optional condition: Only save on cache miss or primary branch to save time
         if: steps.pnpm-cache-restore.outputs.cache-hit != 'true'
         with:
@@ -159,13 +159,13 @@ jobs:
             webtier=${{ inputs.webtier }}
             aws_access_key_id=${{ secrets.aws_access_key_id }}
             aws_secret_access_key=${{ secrets.aws_secret_access_key }}
-          context: ./isolated-deploy
+          context: .
           push: true
           tags: |
             ${{ env.IMAGE_TAG }}
             ${{ env.TIER_POINTER_TAG }}
 
-      - uses: azure/setup-kubectl@v4.0.0
+      - uses: azure/setup-kubectl@v5
 
       - name: Deploy to Kubernetes
         run: |
