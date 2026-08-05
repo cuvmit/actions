@@ -71,11 +71,24 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: ${{ inputs.node_version }}
-          cache: 'pnpm'
           registry-url: 'https://npm.pkg.github.com'
           scope: '@cuvmit'
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Restore pnpm cache
+        uses: actions/cache/restore@v4
+        id: pnpm-cache-restore
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -83,16 +96,17 @@ jobs:
       - name: build
         run: pnpm run ci:${{ inputs.webtier }}
 
-      - name:
-          copy only the production dependencies to a side directory for use in
-          Docker
-        run: pnpm --filter . deploy --prod --legacy ./isolated-deploy
+      # This captures full node_modules + store before any pruning/deploying occurs!
+      - name: Save pnpm cache
+        uses: actions/cache/save@v4
+        # Optional condition: Only save on cache miss or primary branch to save time
+        if: steps.pnpm-cache-restore.outputs.cache-hit != 'true'
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
 
-      # TODO: I'm not sure how to generailze this yet.
-      - name: copy the just-built custom app artifacts as well.
-        run:
-          cp -r dist ./isolated-deploy/dist && cp -r package.json
-          ./isolated-deploy && cp -r config/*.xlsx ./isolated-deploy/config
+      - name: Prune dev dependencies to make Docker build quicker
+        run: pnpm prune --prod
 
       - name: set main version for sb
         run:
