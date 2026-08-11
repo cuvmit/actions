@@ -77,7 +77,7 @@ jobs:
 
       - name: Restore Yarn cache
         id: yarn-cache
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         with:
           path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
@@ -92,7 +92,7 @@ jobs:
 
       # This captures full node_modules + store before any pruning/deploying occurs!
       - name: Save Yarn cache
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v6
         with:
           path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
           key: ${{ steps.yarn-cache.outputs.cache-primary-key }}
