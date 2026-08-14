@@ -26,7 +26,7 @@ permissions:
 
 jobs:
   build-and-deploy-nodejs-api-pnpm-arm:
-    runs-on: ubuntu-latest-arm
+    runs-on: ubuntu-24.04-arm
     environment: ${{ inputs.webtier }}
     env:
       AWS_REGISTRY_URL: 165158508528.dkr.ecr.us-east-1.amazonaws.com
