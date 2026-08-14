@@ -26,7 +26,7 @@ permissions:
 
 jobs:
   build-and-deploy-nodejs-api-yarn-arm:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest-arm
     environment: ${{ inputs.webtier }}
     env:
       AWS_REGISTRY_URL: 165158508528.dkr.ecr.us-east-1.amazonaws.com
@@ -143,9 +143,6 @@ jobs:
         uses: int128/create-ecr-repository-action@v1
         with:
           repository: ${{ github.event.repository.name }}
-
-      - name: Set up QEMU.  Necessariy for cross-building Docker image on arm64
-        uses: docker/setup-qemu-action@v4
 
       - name: Build and push
         uses: docker/build-push-action@v7
