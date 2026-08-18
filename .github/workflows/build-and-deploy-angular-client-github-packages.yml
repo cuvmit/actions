@@ -29,7 +29,7 @@ permissions:
 
 jobs:
   build-and-deploy-angular-client-github-packages:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     # This is the environment the package is deplyed to, and has nothing to do with env variables
     environment: ${{ inputs.webtier }}
 
