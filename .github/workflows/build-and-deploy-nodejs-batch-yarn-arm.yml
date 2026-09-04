@@ -66,7 +66,7 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-     - name: Get Yarn cache directory path
+      - name: Get Yarn cache directory path
         id: yarn-cache-dir-path
         run: echo "dir=$(yarn cache dir)" >> $GITHUB_OUTPUT
 
@@ -142,7 +142,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v7
         with:
-        platforms: linux/arm64
+          platforms: linux/arm64
           build-args: |
             webtier=${{ inputs.webtier }}
             aws_access_key_id=${{ secrets.aws_access_key_id }}
